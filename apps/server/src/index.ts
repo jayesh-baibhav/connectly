@@ -1,10 +1,10 @@
 import http from 'http'
-import SocketServie from './services/socket'
-import {startMessageConsumer} from './services/kafka'
+import SocketService from './services/socket/index'
+import { startMessageConsumer } from './services/kafka/consumer'
 
 async function init(){
     startMessageConsumer()
-    const socketService = new SocketServie()
+    const socketService = new SocketService()
     const httpServer = http.createServer()
     const PORT = process.env.PORT ? process.env.PORT : 8000
 
@@ -14,7 +14,7 @@ async function init(){
         console.log(`HTTP Server Started @ PORT:${PORT}`)
     )
 
-    socketService.initListeners();
+    socketService.start();
 }
 
 init();
