@@ -11,11 +11,18 @@ export async function startMessageConsumer() {
         eachMessage: async ({ message, pause }) => {
             console.log('New Message Received');
             if (!message.value) return;
+            const newMsg = JSON.parse(message.value?.toString())
             try {
                 await prismaClient.message.create({
                     data: {
-                        text: message.value?.toString()
-                    }
+                        senderId: newMsg.senderId,
+                        receiverId: newMsg.receiverId,
+                        message: {
+                            type: "TEXT",
+                            content: newMsg.message
+                        },
+                        createdAt: new Date(newMsg.createdAt),
+                      },
                 });
             } catch (err) {
                 console.log('Something is wrong!');

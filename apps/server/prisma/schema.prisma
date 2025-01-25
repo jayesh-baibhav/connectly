@@ -14,9 +14,13 @@ datasource db {
 }
 
 model Message {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  text      String
-  createdAt DateTime @default(now()) @map("created_at")
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  senderId            String    @map("sender_id")
+  receiverId          String    @map("receiver_id")
+  message             Json      @map("message")
+  isDeletedBySender   Boolean   @default(false) @map("is_deleted_by_sender")
+  isDeletedByReceiver Boolean   @default(false) @map("is_deleted_by_receiver")
+  createdAt           DateTime  @default(now()) @map("created_at")
 
   @@map("messages")
 }

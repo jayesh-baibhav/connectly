@@ -15,7 +15,7 @@ export class SocketListener {
             socket.on('event:message', async ({ message }: { message: string }) => {
                 console.log(`New Message Received: ${message}`);
                 // Publish this message to Redis
-                await pub.publish('MESSAGES', JSON.stringify({ message }));
+                await pub.publish('MESSAGES', JSON.stringify(message ));
             });
         });
     }
