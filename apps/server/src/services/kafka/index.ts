@@ -7,14 +7,49 @@ dotenv.config()
 
 const kafka = new Kafka({
     brokers: [process.env.KAFKA_BROKERS!],
-    ssl: {
-        ca: [fs.readFileSync(path.resolve(`${process.env.KAFKA_CA_PATH}`), "utf-8")],
-    },
-    sasl: {
-        username: `${process.env.KAFKA_USERNAME}`,
-        password: `${process.env.KAFKA_PASSWORD}`,
-        mechanism: "plain",
-    }
 });
+
+const admin = kafka.admin()
+
+async function createTopicIfNotExists() {
+  await admin.connect();
+
+  const topics = await admin.listTopics();
+
+  const topicsToCreate = [];
+
+  if (!topics.includes('MESSAGES')) {
+    topicsToCreate.push({
+      topic: 'MESSAGES',
+      numPartitions: 1,
+      replicationFactor: 1,
+    });
+    console.log('Preparing to create topic "MESSAGES".');
+  } else {
+    console.log('Topic "MESSAGES" already exists.');
+  }
+
+  // if (!topics.includes('MESSAGES_DLQ')) {
+  //   topicsToCreate.push({
+  //     topic: 'MESSAGES_DLQ',
+  //     numPartitions: 1,
+  //     replicationFactor: 1,
+  //   });
+  //   console.log('Preparing to create topic "MESSAGES_DLQ".');
+  // } else {
+  //   console.log('Topic "MESSAGES_DLQ" already exists.');
+  // }
+
+  if (topicsToCreate.length > 0) {
+    await admin.createTopics({ topics: topicsToCreate });
+    console.log('Created topics:', topicsToCreate.map((t) => t.topic).join(', '));
+  } else {
+    console.log('No topics needed to be created.');
+  }
+
+  await admin.disconnect();
+}
+
+createTopicIfNotExists().catch(console.error);
 
 export default kafka;

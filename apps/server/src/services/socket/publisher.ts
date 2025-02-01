@@ -7,7 +7,7 @@ export class SocketPublisher {
         this.io = io;
     }
 
-    public emitMessage(message: string) {
+    public emitMessage(message: object) {
         this.io.emit('message', message);
     }
 }

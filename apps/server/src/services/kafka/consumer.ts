@@ -12,15 +12,23 @@ export async function startMessageConsumer() {
             console.log('New Message Received');
             if (!message.value) return;
             try {
-                await prismaClient.message.create({
-                    data: {
-                        text: message.value?.toString()
-                    }
-                });
-            } catch (err) {
-                console.log('Something is wrong!');
-                pause();
-                setTimeout(() => { consumer.resume([{ topic: "MESSAGES" }]) }, 60 * 1000);
+                const newMsg = JSON.parse(message.value?.toString())
+                try {
+                    await prismaClient.message.create({
+                        data: {
+                            senderId: newMsg.senderId,
+                            receiverId: newMsg.receiverId,
+                            message: newMsg.message,
+                            createdAt: new Date(newMsg.createdAt),
+                          },
+                    });
+                } catch (err) {
+                    console.log('Something is wrong!');
+                    pause();
+                    setTimeout(() => { consumer.resume([{ topic: "MESSAGES" }]) }, 60 * 1000);
+                }
+            }catch(err){
+                console.log("ERROR IN PARSING MESSAGE FROM KAFKA: ",message.value?.toString())
             }
         }
     });

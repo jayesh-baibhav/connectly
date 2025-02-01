@@ -1,14 +1,22 @@
 'use client'
 import React, { useCallback, useContext, useEffect, useState } from "react"
 import { io,Socket } from "socket.io-client"
+import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
 
 interface SocketProviderProps {
     children?: React.ReactNode
 }
 
+interface Message {
+    createdAt: number;
+    senderId: string;
+    receiverId: string;
+    message: string;
+}
+
 interface ISocketContext {
-    sendMessage: (msg: string) => any;
-    messages:string[]
+    sendMessage: (msg: Message) => void;
+    messages: Message[];
 }
 
 const SocketContext = React.createContext<ISocketContext | null>(null);
@@ -22,8 +30,10 @@ export const useSocket = () => {
 }
 
 export const SocketProvider: React.FC<SocketProviderProps> = ({children}) => {
-    const [socket, setSocket] = useState<Socket>()
-    const [messages, setMessages] = useState<string[]>([])
+    const { isAuthenticated, getUser } = useKindeAuth() 
+    const [socket, setSocket] = useState<Socket | null>()
+    const [messages, setMessages] = useState<Message[]>([])
+    console.log(messages)
 
     const sendMessage: ISocketContext["sendMessage"] = useCallback((msg) => {
         console.log("Send Message", msg);
@@ -33,21 +43,27 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({children}) => {
     },[socket]);  
     
     const onMessageRec = useCallback((msg: string)=>{
-        console.log('From Server Message Recieved: ',msg)
-        const {message} = JSON.parse(msg) as {message: string}
-        setMessages((prev)=>[...prev,message])
+        console.log('From Server Message Recieved: ',{message: msg})
+        const message: Message = JSON.parse(msg)
+            setMessages((prevMessages) => [...prevMessages, message]) 
     },[])
 
     useEffect(() => {
-        const _socket = io('http://localhost:8000')
-        _socket.on('message', onMessageRec)
-        setSocket(_socket)
-        return () => {
-            _socket.disconnect()
-            _socket.off('message', onMessageRec)
-            setSocket(undefined)
+        if(isAuthenticated){
+            const user = getUser();
+            const _socket = io('http://localhost:8000')
+            _socket.emit("join", { userId: user?.email });
+            _socket.on('message', onMessageRec)
+            setSocket(_socket)
+            return () => {
+                _socket.disconnect()
+                _socket.off('message', onMessageRec)
+                setSocket(undefined)
+            }
+        }else{
+            setSocket(null)
         }
-    },[])
+    },[isAuthenticated,getUser])
     return (
         <SocketContext.Provider value={{ sendMessage, messages}}>
             {children}

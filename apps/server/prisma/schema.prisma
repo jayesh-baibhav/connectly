@@ -9,14 +9,18 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "sqlserver"
   url      = env("DATABASE_URL")
 }
 
 model Message {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  text      String
-  createdAt DateTime @default(now()) @map("created_at")
+  id                  String    @id @default(uuid()) @map("id") @db.UniqueIdentifier
+  senderId            String    @map("sender_id") @db.VarChar(255)
+  receiverId          String    @map("receiver_id") @db.VarChar(255)
+  message             String    @map("message") @db.NVarChar(max) // Store JSON as string
+  isDeletedBySender   Boolean   @default(false) @map("is_deleted_by_sender")
+  isDeletedByReceiver Boolean   @default(false) @map("is_deleted_by_receiver")
+  createdAt           DateTime  @default(now()) @map("created_at")
 
-  @@map("messages")
+  @@map("messages") // Maps the model to the "messages" table
 }
