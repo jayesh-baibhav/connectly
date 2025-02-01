@@ -7,7 +7,8 @@ export async function subscribeToMessages(io: Server) {
     sub.on("message", async (channel, message) => {
         if (channel == "MESSAGES") {
             console.log('New message from Redis', message);
-            io.emit("message", message);
+            const receiverId = JSON.parse(message)?.receiverId
+            io.to(receiverId).emit("message", message);
             // DB store
             await produceMessage(message);
             console.log("Message Produced to Kafka Broker");
