@@ -13,14 +13,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id           String    @id @unique
+  email        String    @unique
+  first_name   String?   @db.VarChar(100)
+  last_name    String?   @db.VarChar(100)
+  createdAt    DateTime  @default(now())  @map("created_at")
+
+  @@map("users")  // Maps the model to the "users" table
+}
+
 model Message {
-  id                  String    @id @default(uuid()) @map("id") @db.UniqueIdentifier
-  senderId            String    @map("sender_id") @db.VarChar(255)
-  receiverId          String    @map("receiver_id") @db.VarChar(255)
-  message             String    @map("message") @db.NVarChar(max) // Store JSON as string
-  isDeletedBySender   Boolean   @default(false) @map("is_deleted_by_sender")
-  isDeletedByReceiver Boolean   @default(false) @map("is_deleted_by_receiver")
-  createdAt           DateTime  @default(now()) @map("created_at")
+  id                  String    @id @default(uuid())  @map("id")                        @db.UniqueIdentifier
+  senderId            String    @map("sender_id")     @db.VarChar(255)
+  receiverId          String    @map("receiver_id")   @db.VarChar(255)
+  message             String    @map("message")       @db.VarChar(max)
+  status              String    @default("SENT")      @map("status")                    @db.VarChar(10) 
+  isDeletedBySender   Boolean   @default(false)       @map("is_deleted_by_sender")
+  isDeletedByReceiver Boolean   @default(false)       @map("is_deleted_by_receiver")
+  createdAt           DateTime  @default(now())       @map("created_at")
 
   @@map("messages") // Maps the model to the "messages" table
 }
