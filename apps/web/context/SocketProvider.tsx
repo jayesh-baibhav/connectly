@@ -9,7 +9,7 @@ interface SocketProviderProps {
 
 interface Message {
     createdAt: number;
-    senderId: string;
+    senderId: string | null;
     receiverId: string;
     message: string;
 }
@@ -50,9 +50,10 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({children}) => {
 
     useEffect(() => {
         if(isAuthenticated){
-            const user = getUser();
+            const user = getUser()
+            sessionStorage.setItem("userId",`${user?.id}`)
             const _socket = io('http://localhost:8000')
-            _socket.emit("join", { userId: user?.email });
+            _socket.emit("join", { userId: user?.id })
             _socket.on('message', onMessageRec)
             setSocket(_socket)
             return () => {

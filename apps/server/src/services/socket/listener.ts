@@ -10,21 +10,23 @@ export class SocketListener {
 
     public init() {
         this.io.on('connection', (socket) => {
-            console.log(`New Socket Connected: ${socket.id}`);
-
             socket.on('join', ({ userId }: { userId: string }) => {
                 if (!userId) {
                     console.log('Join event missing userId');
                     socket.emit('error', { message: 'User ID is required to join a room.' });
                     return;
                 }
-                console.log(`${userId} joined their room.`);
+                console.log(`Socket Connected: ${socket.id}, User ID: ${userId}`);
                 socket.join(userId);
             });
 
             socket.on('event:message', async ({ message }: { message: object }) => {
                 console.log(`New Message Received: ${message}`);
                 await pub.publish('MESSAGES', JSON.stringify(message ));
+            });
+
+            socket.on('disconnect', (reason) => {
+                console.log(`Socket Disconnected: ${socket.id}, Reason: ${reason}`);
             });
         });
     }

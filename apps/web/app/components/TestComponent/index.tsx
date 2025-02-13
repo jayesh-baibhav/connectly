@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useSocket } from "../../../context/SocketProvider";
 
 interface MessageFormData {
-  senderId: string;
+  senderId: string | null;
   receiverId: string;
   message: string;
 }
@@ -11,7 +11,7 @@ interface MessageFormData {
 const TestComponent: React.FC = () => {
   const { sendMessage, messages } = useSocket();
   const [formData, setFormData] = useState<MessageFormData>({
-    senderId: "",
+    senderId: sessionStorage.getItem("userId") ? sessionStorage.getItem("userId") : null,
     receiverId: "",
     message: "",
   });
@@ -35,23 +35,11 @@ const TestComponent: React.FC = () => {
       createdAt: Date.now(),
     };
     console.log("Updated Form Data:", updatedFormData);
-    sendMessage(updatedFormData); // Send the updated form data
+    sendMessage(updatedFormData);
   };
 
   return (
     <form onSubmit={handleSubmit} className="message-form">
-      <div>
-        <label htmlFor="senderId">Sender ID:</label>
-        <input
-          type="text"
-          id="senderId"
-          name="senderId"
-          value={formData.senderId}
-          onChange={handleChange}
-          required
-        />
-      </div>
-
       <div>
         <label htmlFor="receiverId">Receiver ID:</label>
         <input
